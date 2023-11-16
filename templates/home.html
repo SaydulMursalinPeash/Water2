@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Receive Data</title>
+</head>
+<body>
+  <ul id="dataList"></ul>
+
+  <script>
+    let ws = new WebSocket("ws://127.0.0.1:8000/ws/sensor/some_sensor_name/"); // Replace with your WebSocket URL
+
+    ws.onmessage = function(event) {
+      let data = JSON.parse(event.data);
+      displayData(data);
+    };
+
+    function displayData(data) {
+      let dataList = document.getElementById('dataList');
+      let listItem = document.createElement('li');
+      listItem.appendChild(document.createTextNode(data));
+      dataList.appendChild(listItem);
+      console.log(data)
+    }
+  </script>
+</body>
+</html>
