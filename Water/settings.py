@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-+twk)uqai=l_nn+l*5hpz7gfkk@sg4g^g-8y&3j-j&6!sux8qw
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -141,3 +142,4 @@ import dj_database_url as djurl
 DATABASES={
     'default':djurl.parse('postgres://peash:xwMlohes1ZJvJwoCT1PHcxUQRMzKzQZr@dpg-cjsu542bgj9c73cf4eqg-a.singapore-postgres.render.com/ppp_th8n')
 }'''
+CORS_ALLOW_ALL_ORIGINS = True
