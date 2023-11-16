@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Send Data</title>
+</head>
+<body>
+  <input type="text" id="tempInput" placeholder="Temperature">
+  <input type="text" id="tdsInput" placeholder="TDS">
+  <input type="text" id="doInput" placeholder="DO">
+  <input type="text" id="condInput" placeholder="Conductivity">
+  <button onclick="sendData()">Send Data</button>
+
+  <script>
+    let ws = new WebSocket("ws://127.0.0.1:8000/ws/sensor/some_sensor_name/"); 
+
+    function sendData() {
+      let temp = document.getElementById('tempInput').value;
+      let tds = document.getElementById('tdsInput').value;
+      let doValue = document.getElementById('doInput').value;
+      let cond = document.getElementById('condInput').value;
+
+      // Create a JSON object containing all four data points
+      let data = {
+        "temp": temp,
+        "tds": tds,
+        "do": doValue,
+        "cond": cond
+      };
+
+      // Send the JSON object via WebSocket
+      ws.send(JSON.stringify(data));
+    }
+  </script>
+</body>
+</html>
