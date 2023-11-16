@@ -7,7 +7,7 @@
   <ul id="dataList"></ul>
 
   <script>
-    let ws = new WebSocket("ws://127.0.0.1:8000/ws/sensor/some_sensor_name/"); // Replace with your WebSocket URL
+    let ws = new WebSocket("wss://waterserver-vsqt.onrender.com/ws/sensor/some_sensor_name/"); // Replace with your WebSocket URL
 
     ws.onmessage = function(event) {
       let data = JSON.parse(event.data);
