@@ -11,7 +11,7 @@
   <button onclick="sendData()">Send Data</button>
 
   <script>
-    let ws = new WebSocket("wss://waterserver-vsqt.onrender.com//ws/sensor/some_sensor_name/"); 
+    let ws = new WebSocket("wss://waterserver-vsqt.onrender.com/ws/sensor/some_sensor_name/"); 
 
     function sendData() {
       let temp = document.getElementById('tempInput').value;
