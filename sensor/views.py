@@ -9,5 +9,5 @@ class GetSensors(APIView):
     def get(self,request):
         sensors=SenosrInstance.objects.all().order_by('-time').first()
         serializer=SensorSerializer(sensors)
-        return Response({"data":serializer.data()},status=status.HTTP_200_OK)
+        return Response({"data":serializer.data},status=status.HTTP_200_OK)
         
