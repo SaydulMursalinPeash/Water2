@@ -4,22 +4,32 @@
   <title>Send Data</title>
 </head>
 <body>
-  <input type="text" id="tempInput" placeholder="Temperature">
-  <input type="text" id="tdsInput" placeholder="TDS">
-  <input type="text" id="doInput" placeholder="DO">
-  <input type="text" id="condInput" placeholder="Conductivity">
-  <button onclick="sendData()">Send Data</button>
+  <button onclick="startSending()">Start Sending Data</button>
+  <button onclick="stopSending()">Stop Sending Data</button>
 
   <script>
-    let ws = new WebSocket("wss://waterserver-vsqt.onrender.com/ws/sensor/some_sensor_name/"); 
+    let ws;
+    let sendingInterval;
 
-    function sendData() {
-      let temp = document.getElementById('tempInput').value;
-      let tds = document.getElementById('tdsInput').value;
-      let doValue = document.getElementById('doInput').value;
-      let cond = document.getElementById('condInput').value;
+    function startSending() {
+      ws = new WebSocket("ws://waterserver-vsqt.onrender.com/ws/sensor/sensor3/");
 
-      // Create a JSON object containing all four data points
+      // Start sending data every 6 seconds (10 times per minute)
+      sendingInterval = setInterval(sendRandomData, 1000);
+    }
+
+    function stopSending() {
+      // Close the WebSocket connection and clear the sending interval
+      ws.close();
+      clearInterval(sendingInterval);
+    }
+
+    function sendRandomData() {
+      let temp = Math.floor(Math.random() * 100); // Random temperature between 0 and 100
+      let tds = Math.floor(Math.random() * 1000); // Random TDS between 0 and 1000
+      let doValue = Math.floor(Math.random() * 10); // Random DO between 0 and 10
+      let cond = Math.floor(Math.random() * 10000); // Random conductivity between 0 and 10000
+
       let data = {
         "temp": temp,
         "tds": tds,
@@ -27,7 +37,6 @@
         "cond": cond
       };
 
-      // Send the JSON object via WebSocket
       ws.send(JSON.stringify(data));
     }
   </script>

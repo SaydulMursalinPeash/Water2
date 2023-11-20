@@ -1,81 +1,128 @@
 import flet as ft
 from flet import *
 import requests
+import json
+import asyncio
+import websockets
 
 def get_sensor_data():
-    url = 'https://waterserver-vsqt.onrender.com/api/sensors'
+    url = 'https://waterserver-vsqt.onrender.com/api/sensors/'
     response = requests.get(url)
     if response.status_code == 200:  
         data = response.json()
+        print(data)
         return data['data']
     else:
         print(f"Failed to fetch data. Status code: {response.status_code}")
         return None
-a=get_sensor_data()
-print(a)
-sen_list=[]
-for key in a.keys():
-    sen_list.append(
-        ft.Container(
-            padding=10,
-            content=ft.Row(
-                height=80,
-                width=300,
-                spacing=10,
-                controls=[
-                    ft.Container(
-                        height=70,
-                        width=70,
-                        border_radius=35,
-                        bgcolor='white',
-                        content=Text('0',text_align='center',color='black',width='w700',size=15)
-                    ),
-                    ft.Text('1',size=15,color='red')
-                ]
-                
-            )
-        )
-    )
+    
+get_sensor_data()
+def _expand_sensor(e):
+    if(e.data=='true'):
+        pass
+    else:
+        pass
 
 
-def main(page:Page):
+async def main(page:Page):
     page.bgcolor=ft.colors.GREY_800
     page.horizontal_alignment=ft.CrossAxisAlignment.CENTER
     page.vertical_alignment=ft.MainAxisAlignment.CENTER
+    text_inp=TextField(label='Sensor name',border_color='white',color='white',border_radius=15,text_size=15)
+    temp=Text(f"Temperature: 0",size=18,color=ft.colors.WHITE54,weight='w400')
+    tds=Text(f"TDS: 0",size=18,color=ft.colors.WHITE54,weight='w400')
+    do=Text(f"DO: 0",size=18,color=ft.colors.WHITE54,weight='w400')
+    cond=Text(f"Condactivity: 0",size=18,color=ft.colors.WHITE54,weight='w400')
+    sensor_name=Text('Name',size=20,weight='w500',color='white')
     
-    #top container
-    def _expand(e):
-        if e.data=="true":
-            main_container.content.controls[0].controls[0].height=560
-            main_container.content.controls[0].update()
+    async def small(e):
+        if e=="false":
+            main_container.content.controls[0].controls[0].height=640*0.4
+            await main_container.content.controls[0].update_async()
         else:
-            main_container.content.controls[0].controls[0].height=660*0.4
-            main_container.content.controls[0].update()
-            
-    def _sensor_list():
-        #sensor_list=get_sensor_data()
-        
-        
-        sensor_div=ft.Container(
-            width=300,
-            height=660*0.6,
-            gradient=LinearGradient(
-                begin=alignment.bottom_left,
-                end=alignment.top_right,
-                colors=['lightblue600','lightblue900']
+            main_container.content.controls[0].controls[0].height=640
+            await main_container.content.controls[0].update_async()
+    #top container
+    data_container=Container(
+        width=300,
+        padding=10,
+        height=660*0.4,
+        visible=False,
+        gradient=LinearGradient(
+            begin=alignment.bottom_left,
+            end=alignment.top_right,
+            colors=['#212130','#39304A']
+        ),
+        animate=animation.Animation(
+                duration=350,
+                curve='decelerate',
+                
             ),
-            border_radius=35,
-            content=Column(
-                alignment='start',
-                scroll=True,
-                controls=sen_list
-            )
+        border_radius=35,
+        content=Column(
+            alignment='start',
+            controls=[
+                Row(
+                  alignment='center',
+                  controls=[
+                      sensor_name
+                  ]  
+                ),
+                Divider(height=8,thickness=1,color='white10'),
+                temp,
+                tds,
+                do,
+                cond,
+                
+            ]
         )
-        return sensor_div    
-    def _top():
+    )
+    soc=0
+    async def search_sensor(e):
+        
+        s_name=text_inp.value
+        sensor_name.value=f"{s_name}"
+        if s_name=='':
+            data_container.visible=False
+            await small(e='true')
+            await page.update_async()
+            return
+        await small(e='false')
+        data_container.visible=True
+        await page.update_async()
+        #print(name)
+        try:
+            con=await websockets.connect("wss://waterserver-vsqt.onrender.com:8000/ws/sensor/"+s_name+"/")
+        except:
+            sensor_name.value="Connection failed!!"
+            await page.update_async()
+            
+            
+        
+        while True:
+            #print('trying')
+            try:
+                if(s_name!=text_inp.value):
+                    break
+                #print(f'wss://waterserver-vsqt.onrender.com/ws/sensor/{text_inp.value}/')
+                data1 = await con.recv()
+                data=json.loads(data1)
+                temp.value=f"Temperature: {data['temp']}"
+                tds.value=f"TDS: {data['tds']}"
+                do.value=f"DO: {data['do']}"
+                cond.value=f"Conductivity: {data['cond']}"
+                    
+                    
+                await page.update_async()
+            except websockets.exceptions.ConnectionClosedError:
+                print("Connection closed")
+                break
+        
+               
+    async def _top():
         top=ft.Container(
             width=300,
-            height=660*0.4,
+            height=640,
             gradient=LinearGradient(
                 begin=alignment.bottom_left,
                 end=alignment.top_right,
@@ -87,7 +134,7 @@ def main(page:Page):
                 curve='decelerate',
                 
             ),
-            on_hover=lambda e: _expand(e),
+            
             padding=10,
             content=Column(
                 alignment='start',
@@ -147,13 +194,13 @@ def main(page:Page):
                     Row(
                         alignment='center',
                         controls=[
-                            IconButton(icons.REFRESH,icon_size=25,icon_color='white'),
-                        ]
-                    ),
-                    Row(
-                        alignment='center',
-                        controls=[
-                            Text('Refresh to update sensor list',size=12,color='white')
+                            Container(
+                                height=35,
+                                width=200,
+                                content=text_inp,
+                                
+                            ),
+                            IconButton(icons.SEARCH,bgcolor=ft.colors.WHITE30,on_click=search_sensor)
                         ]
                     )
                 ]
@@ -173,15 +220,17 @@ def main(page:Page):
                 Column(
                     alignment='start',
                     controls=[
-                        _top(),
-                        _sensor_list()
+                        await _top(),
+                        data_container
+                        
                     ]
                 )
             ]
         )
     )
-    page.add(main_container)
+    await page.add_async(main_container)
+    
 
-ft.app(target=main,assets_dir='assets')
+ft.app(main,assets_dir='assets')
 
     
